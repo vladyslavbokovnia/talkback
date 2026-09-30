@@ -26,8 +26,8 @@ jobs:
         with:
           gradle-version: "8.14.3"
 
-      - name: Build debug APK (phone flavor)
-        run: gradle assemblePhoneDebug --stacktrace
+      - name: Build AnTTS debug APK (phone flavor)
+        run: gradle :antts:assemblePhoneDebug --stacktrace
 
       - name: Report APK size
         if: always()
