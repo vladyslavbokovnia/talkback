@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
@@ -6,7 +6,17 @@ android {
     compileSdk 36
 
     defaultConfig {
+        applicationId "com.antts.app"
         minSdk 26
+        versionCode 1
+        versionName "1.0"
+    }
+
+    flavorDimensions "target"
+    productFlavors {
+        phone {
+            dimension "target"
+        }
     }
 
     compileOptions {
@@ -20,7 +30,5 @@ android {
 }
 
 dependencies {
-    // TalkBack's accessibility-tree utilities: node text, visibility, roles,
-    // traversal order. Used by the text extractor.
     implementation project(':utils')
 }
