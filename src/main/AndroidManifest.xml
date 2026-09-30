@@ -1,30 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-  <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    >
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <!-- Strings with the format ${foo}, such as ${applicationId}, are called
-  placeholders, and they get replaced by the build system with the appropriate
-  value when a build executes.
-  -->
-
-  <!-- The <queries> element allows us to ask the package manager about the
-  installation status of external components we are interested in. This policy
-  change was introduced in Android 11. Move from /accessibility/talkback/AndroidManifest.xml
-  to /accessibility/AndroidManifest.xml because merger tool doesn't support
-  <queries> (b/231523982).-->
+  <!-- The <queries> element lets the app ask the package manager about the
+  installation status of the text-to-speech engine (Android 11+ package
+  visibility). -->
   <queries>
     <intent>
       <action android:name="android.intent.action.TTS_SERVICE" />
     </intent>
-    <intent>
-      <action
-          android:name="android.speech.RecognitionService" />
-    </intent>
   </queries>
 
+  <!-- The TalkBackApplication class lived in the :talkback module, which is
+  not part of the AnTTS build, so no custom Application class is declared. -->
   <application
-     android:name="com.google.android.accessibility.talkback.TalkBackApplication"
-     android:enableOnBackInvokedCallback="true"
-     />
+     android:enableOnBackInvokedCallback="true" />
 
 </manifest>

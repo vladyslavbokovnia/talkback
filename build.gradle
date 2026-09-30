@@ -1,4 +1,4 @@
-// For building the open-source release of TalkBack.
+// For building the open-source release of TalkBack (AnTTS fork).
 
 apply plugin: 'com.android.application'
 
@@ -9,7 +9,7 @@ apply from: 'version.gradle'
 final BUILD_TIMESTAMP = new Date().format('yyyy_MM_dd_HHmm')
 
 dependencies {
-    implementation project(':talkback')
+    implementation project(':antts')
 }
 
 buildscript {
@@ -42,12 +42,16 @@ allprojects {
 android {
     namespace "com.android.talkback"
     defaultConfig {
-        applicationId talkbackApplicationId
+        applicationId "com.antts.app"
         versionName talkbackVersionName + "-" + BUILD_TIMESTAMP
         minSdkVersion 26
         targetSdkVersion 30
         testInstrumentationRunner 'android.test.InstrumentationTestRunner'
         multiDexEnabled true
+    }
+    // AnTTS: keep only the locales the app actually ships strings for.
+    androidResources {
+        localeFilters += ["en", "ru", "uk"]
     }
     packagingOptions {
         exclude 'LICENSE'
