@@ -4,3 +4,5 @@
 include ':antts'
 include ':utils'
 include ':proguard'
+
+// AnTTS is the application being built; the root TalkBack app module is not needed.
