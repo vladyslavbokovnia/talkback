@@ -1015,7 +1015,11 @@ public class TalkBackService extends AccessibilityServiceCompat
     EventId eventId = perf.onEventReceived(event);
     int eventType = event.getEventType();
     if (anttsOverlay != null) {
-      anttsOverlay.onAccessibilityEvent(event);
+      try {
+        anttsOverlay.onAccessibilityEvent(event);
+      } catch (RuntimeException e) {
+        AnttsCrashLog.record(this, "overlay event", e);
+      }
     }
     if (eventType == AccessibilityEvent.TYPE_TOUCH_INTERACTION_START) {
       // TODO: Could move the logic of TOUCH_INTERACTION related event handling out of
@@ -1703,10 +1707,14 @@ public class TalkBackService extends AccessibilityServiceCompat
 
     primesController.stopTimer(TimerAction.START_UP);
 
-    if (anttsOverlay == null) {
-      anttsOverlay = new AnttsOverlay(this);
+    try {
+      if (anttsOverlay == null) {
+        anttsOverlay = new AnttsOverlay(this);
+      }
+      anttsOverlay.show();
+    } catch (RuntimeException e) {
+      AnttsCrashLog.record(this, "overlay show", e);
     }
-    anttsOverlay.show();
   }
 
   protected void setSupportClickableLinks(boolean supportClickableLinks) {

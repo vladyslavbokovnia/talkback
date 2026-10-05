@@ -104,8 +104,9 @@
         <activity
             android:name="com.google.android.accessibility.talkback.AnttsSettingsActivity"
             android:exported="true"
+            android:icon="@mipmap/antts_ic_launcher"
             android:label="AnTTS"
-            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

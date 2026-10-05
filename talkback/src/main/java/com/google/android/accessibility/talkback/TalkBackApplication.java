@@ -35,6 +35,7 @@ public class TalkBackApplication extends SplitCompatApplication {
   @Override
   public void onCreate() {
     super.onCreate();
+    AnttsCrashLog.install(this);
 
     FormFactorUtils.initialize(this);
     PackageNameProvider.initialize(this);
