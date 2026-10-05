@@ -14,6 +14,9 @@
     <!-- Required for fingerprint gesture. -->
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
 
+    <!-- Required for the AnTTS traffic counter (user must grant usage access). -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+
     <!-- Required to monitor phone busy state. -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
@@ -97,6 +100,18 @@
             android:label="TalkBackIpcService" />
 
         <!-- TalkBack Preferences -->
+        <!-- AnTTS control bar settings. -->
+        <activity
+            android:name="com.google.android.accessibility.talkback.AnttsSettingsActivity"
+            android:exported="true"
+            android:label="AnTTS"
+            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="com.android.talkback.TalkBackPreferencesActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout"

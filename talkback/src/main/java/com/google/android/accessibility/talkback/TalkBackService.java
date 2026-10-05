@@ -672,6 +672,7 @@ public class TalkBackService extends AccessibilityServiceCompat
 
   /** Controller for handling gestures */
   protected GestureController gestureController;
+  private AnttsOverlay anttsOverlay;
 
   /** Speech recognition wrapper for voice commands */
   private VoiceCommandActor voiceCommandActor;
@@ -848,6 +849,9 @@ public class TalkBackService extends AccessibilityServiceCompat
   @Override
   public boolean onUnbind(Intent intent) {
     LogUtils.d(TAG, "onUnbind start");
+    if (anttsOverlay != null) {
+      anttsOverlay.hide();
+    }
     final long turningOffTime = System.currentTimeMillis();
     interruptAllFeedback(/* stopTtsSpeechCompletely= */ false);
     storeTalkBackUserUsage();
@@ -1010,6 +1014,9 @@ public class TalkBackService extends AccessibilityServiceCompat
     Performance perf = Performance.getInstance();
     EventId eventId = perf.onEventReceived(event);
     int eventType = event.getEventType();
+    if (anttsOverlay != null) {
+      anttsOverlay.onAccessibilityEvent(event);
+    }
     if (eventType == AccessibilityEvent.TYPE_TOUCH_INTERACTION_START) {
       // TODO: Could move the logic of TOUCH_INTERACTION related event handling out of
       // TalkBackService, and concentrated in a dedicated module such as ?
@@ -1538,6 +1545,47 @@ public class TalkBackService extends AccessibilityServiceCompat
     }
   }
 
+  /** Runs a TalkBack shortcut action (e.g. next / previous item) as if a gesture had triggered it. */
+  public void performShortcutAction(@androidx.annotation.StringRes int actionRes) {
+    if (!isServiceActive() || gestureController == null) {
+      return;
+    }
+    gestureController.performAction(getString(actionRes), EVENT_ID_UNTRACKED);
+  }
+
+  /** Returns true if some visible node currently has TalkBack accessibility focus. */
+  public boolean hasAccessibilityFocus() {
+    return accessibilityFocusMonitor != null
+        && accessibilityFocusMonitor.hasAccessibilityFocus(/* useInputFocusIfEmpty= */ false);
+  }
+
+  /** Speaks text through TalkBack, interrupting current speech; runs {@code onDone} when finished. */
+  public void speakInterrupting(
+      CharSequence text,
+      com.google.android.accessibility.utils.output.SpeechController.UtteranceCompleteRunnable
+          onDone) {
+    if (pipeline == null) {
+      return;
+    }
+    pipeline
+        .getFeedbackReturner()
+        .returnFeedback(
+            EVENT_ID_UNTRACKED,
+            Feedback.speech(
+                text,
+                com.google.android.accessibility.utils.output.SpeechController.SpeakOptions
+                    .create()
+                    .setQueueMode(
+                        com.google.android.accessibility.utils.output.SpeechController
+                            .QUEUE_MODE_INTERRUPT)
+                    .setCompletedAction(onDone)));
+  }
+
+  /** Returns true while TalkBack is reading continuously. */
+  public boolean isContinuousReadingActive() {
+    return fullScreenReadActor != null && fullScreenReadActor.isActive();
+  }
+
   @Override
   protected void onServiceConnected() {
     super.onServiceConnected();
@@ -1654,6 +1702,11 @@ public class TalkBackService extends AccessibilityServiceCompat
     sendBroadcast(intent);
 
     primesController.stopTimer(TimerAction.START_UP);
+
+    if (anttsOverlay == null) {
+      anttsOverlay = new AnttsOverlay(this);
+    }
+    anttsOverlay.show();
   }
 
   protected void setSupportClickableLinks(boolean supportClickableLinks) {
