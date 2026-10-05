@@ -1,0 +1,81 @@
+name: Build TalkBack AnTTS APK
+
+on:
+  push:
+    branches: [clean-upstream]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build TalkBack (${{ github.ref_name }})
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply AnTTS changes to the existing TalkBack files (first run only)
+        run: |
+          if [ -f .antts/existing-files.patch ]; then
+            git apply --index .antts/existing-files.patch
+            git rm -q -f .antts/existing-files.patch
+            echo "APPLIED=1" >> "$GITHUB_ENV"
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK and NDK
+        run: |
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" "ndk;21.4.7075529"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Build debug APK (phone)
+        run: gradle --no-daemon assemblePhoneDebug
+
+      - name: Collect APK
+        run: |
+          APK="$(find build/outputs/apk -name '*.apk' | head -n 1)"
+          echo "Found: $APK"
+          mkdir -p dist
+          cp "$APK" "dist/TalkBack-AnTTS-${{ github.ref_name }}.apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TalkBack-AnTTS-${{ github.ref_name }}
+          path: dist/*.apk
+
+      - name: Publish APK as a pre-release (easy download on the phone)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="apk-${{ github.ref_name }}"
+          gh release delete "$TAG" --cleanup-tag -y || true
+          gh release create "$TAG" dist/*.apk \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "TalkBack AnTTS (${{ github.ref_name }})" \
+            --notes "Debug APK built from ${GITHUB_SHA::7}"
+
+      - name: Commit the applied changes back to the branch
+        if: env.APPLIED == '1'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Apply AnTTS changes to TalkBack sources"
+          git push origin "HEAD:${{ github.ref_name }}"
