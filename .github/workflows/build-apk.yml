@@ -30,6 +30,20 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Stable debug signing key (same signature on every build, so updates install over each other)
+        run: |
+          mkdir -p ~/.android .antts
+          if [ -f .antts/debug.keystore.b64 ]; then
+            base64 -d .antts/debug.keystore.b64 > ~/.android/debug.keystore
+          else
+            keytool -genkeypair -keystore ~/.android/debug.keystore \
+              -storepass android -keypass android -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 36500 \
+              -dname "CN=Android Debug,O=Android,C=US"
+            base64 -w0 ~/.android/debug.keystore > .antts/debug.keystore.b64
+            echo "NEW_KEY=1" >> "$GITHUB_ENV"
+          fi
+
       - name: Set up Android SDK and NDK
         run: |
           export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
@@ -72,10 +86,11 @@ jobs:
             --title "TalkBack AnTTS (${{ github.ref_name }})" \
             --notes "Debug APK built from ${GITHUB_SHA::7}"
 
-      - name: Commit the applied changes back to the branch
-        if: env.APPLIED == '1'
+      - name: Commit generated files back to the branch
+        if: env.APPLIED == '1' || env.NEW_KEY == '1'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Apply AnTTS changes to TalkBack sources"
+          git add .antts/debug.keystore.b64 2>/dev/null || true
+          git commit -m "Update generated AnTTS build files"
           git push origin "HEAD:${{ github.ref_name }}"
