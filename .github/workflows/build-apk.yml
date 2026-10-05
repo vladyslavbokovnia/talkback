@@ -24,6 +24,11 @@ jobs:
             echo "APPLIED=1" >> "$GITHUB_ENV"
           fi
 
+      - name: Use a unique application id (cannot clash with another TalkBack or an old fork)
+        run: |
+          sed -i 's/talkbackApplicationId = "com.android.talkback"/talkbackApplicationId = "com.antts.talkback"/' shared.gradle
+          grep -n "talkbackApplicationId" shared.gradle
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
