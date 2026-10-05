@@ -48,6 +48,21 @@ edit(
     "\"overlay show\"",
 )
 
+# Android 11 compatibility: these calls need API 33 and crash older phones (NoSuchMethodError).
+edit(
+    SRC + "braille/TalkBackForBrailleImeImpl.java",
+    "          .collect(Collectors.toUnmodifiableSet());",
+    "          .collect(\n"
+    "              Collectors.collectingAndThen(Collectors.toSet(), java.util.Collections::unmodifiableSet));",
+    "collectingAndThen(Collectors.toSet()",
+)
+edit(
+    SRC + "actor/gemini/GeminiFunctionUtils.java",
+    "String strippedLanguage = language.strip();",
+    "String strippedLanguage = language.trim();",
+    "String strippedLanguage = language.trim();",
+)
+
 # Launcher icon (speaker, transparent background) and dark theme for the settings screen.
 edit(
     "talkback/src/main/AndroidManifest.xml",
