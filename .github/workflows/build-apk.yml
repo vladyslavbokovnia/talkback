@@ -24,6 +24,9 @@ jobs:
             echo "APPLIED=1" >> "$GITHUB_ENV"
           fi
 
+      - name: Apply AnTTS tweaks (crash log, icon, dark settings)
+        run: python3 .antts/apply_changes.py
+
       - name: Use a unique application id (cannot clash with another TalkBack or an old fork)
         run: |
           sed -i 's/talkbackApplicationId = "com.android.talkback"/talkbackApplicationId = "com.antts.talkback"/' shared.gradle
@@ -92,10 +95,10 @@ jobs:
             --notes "Debug APK built from ${GITHUB_SHA::7}"
 
       - name: Commit generated files back to the branch
-        if: env.APPLIED == '1' || env.NEW_KEY == '1'
+        if: env.APPLIED == '1' || env.NEW_KEY == '1' || env.TWEAKED == '1'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .antts/debug.keystore.b64 2>/dev/null || true
+          git add -A talkback/src .antts
           git commit -m "Update generated AnTTS build files"
           git push origin "HEAD:${{ github.ref_name }}"
