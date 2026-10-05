@@ -70,12 +70,17 @@ jobs:
       - name: Build debug APK (phone)
         run: gradle --no-daemon assemblePhoneDebug
 
-      - name: Collect APK
+      - name: Collect APK and sign it with the stable key
         run: |
           APK="$(find build/outputs/apk -name '*.apk' | head -n 1)"
           echo "Found: $APK"
           mkdir -p dist
-          cp "$APK" "dist/TalkBack-AnTTS-${{ github.ref_name }}.apk"
+          OUT="dist/TalkBack-AnTTS-${{ github.ref_name }}.apk"
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          "$APKSIGNER" sign --ks ~/.android/debug.keystore --ks-pass pass:android \
+            --key-pass pass:android --ks-key-alias androiddebugkey --min-sdk-version 26 \
+            --out "$OUT" "$APK"
+          "$APKSIGNER" verify --print-certs "$OUT" | head -n 4
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
