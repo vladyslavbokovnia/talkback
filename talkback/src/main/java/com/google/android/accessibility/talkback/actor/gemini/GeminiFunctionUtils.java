@@ -763,7 +763,7 @@ public class GeminiFunctionUtils {
     try {
       String[] languages = locales.split(",");
       for (String language : languages) {
-        String strippedLanguage = language.strip();
+        String strippedLanguage = language.trim();
         if (strippedLanguage.charAt(0) == '*') {
           // Wild card to match all languages
           supportLanguages.put(strippedLanguage, true);

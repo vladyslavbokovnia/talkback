@@ -68,7 +68,8 @@ public class TalkBackForBrailleImeImpl implements TalkBackForBrailleIme {
   @VisibleForTesting
   static final Set<Setting> VALID_GRANULARITIES =
       Arrays.stream(ArrayUtils.concat(VALID_CURSOR_GRANULARITIES, VALID_NON_CURSOR_GRANULARITIES))
-          .collect(Collectors.toUnmodifiableSet());
+          .collect(
+              Collectors.collectingAndThen(Collectors.toSet(), java.util.Collections::unmodifiableSet));
 
   /** Provides functionality of private methods. */
   public interface TalkBackPrivateMethodProvider {
